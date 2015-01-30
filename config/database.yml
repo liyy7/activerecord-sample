@@ -1,0 +1,27 @@
+default: &default
+  adapter: 'mysql2'
+  pool:    5
+  timeout: 5000
+
+development: &development
+  <<: *default
+  host:     '127.0.0.1'
+  username: 'root'
+  password: ''
+  database: '__DATABASE__'
+
+staging: &staging
+  <<: *default
+  host:     '127.0.0.1'
+  username: 'root'
+  password: 'password'
+  database: '__DATABASE__'
+
+production: &production
+  <<: *default
+  host:     '127.0.0.1'
+  username: 'root'
+  password: 'password'
+  database: '__DATABASE__'
+
+default_env: *development
