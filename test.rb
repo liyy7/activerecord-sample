@@ -1,17 +1,17 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-def time
-  t = Time.now
-  res = yield
-  puts "~~~ Time: #{Time.now - t} ~~~"
-  res
-end
-
 class Logging
   def self.log(s)
     puts s
   end
+end
+
+def time(label = nil)
+  t = Time.now
+  res = yield
+  Logging.log "~~~ Time - #{Time.now - t} label{#{label}} ~~~"
+  res
 end
 
 $ACTIVE_DEBUG = false
@@ -60,7 +60,13 @@ end
 def main
   threads = []
 
-  Location.find_in_batches { |locs| threads << Thread.new { create_loc_dups locs } }
+  Location.find_in_batches do|locs|
+    threads << Thread.new do
+      time("create #{locs.size} loc dups") { create_loc_dups locs }
+    end
+  end
+
+  Logging.log "Generated #{threads.size} threads"
 
   threads.each do|t|
     begin
@@ -71,4 +77,4 @@ def main
   end
 end
 
-main if __FILE__ == $PROGRAM_NAME
+time('main call') { main } if __FILE__ == $PROGRAM_NAME
