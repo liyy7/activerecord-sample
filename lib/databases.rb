@@ -10,17 +10,40 @@ db_config = YAML.load_file File.expand_path('../../config/database.yml', __FILE_
 
 ActiveRecord::Base.configurations = db_config
 
-class ActiveRecord::Base
-  class << self
-    alias origin_connection connection
+module ActiveRecord
+  class Base
+    class << self
+      attr_reader :established
+      alias_method :established?, :established
 
-    def connection
-      if defined?(Database)
-        establish_connection Database.connection_config
-      else
-        establish_connection
+      def custom_establish_connection
+        if defined?(Database)
+          establish_connection Database.connection_config
+        else
+          establish_connection
+        end
+
+        @established = true
       end
-      origin_connection
+
+      def establish_connection_if_neccessary
+        custom_establish_connection if self == ActiveRecord::Base && !established?
+      end
+
+      private :custom_establish_connection, :establish_connection_if_neccessary
+
+      alias_method :origin_connection, :connection
+      alias_method :origin_connection_pool, :connection_pool
+
+      def connection
+        establish_connection_if_neccessary
+        origin_connection
+      end
+
+      def connection_pool
+        establish_connection_if_neccessary
+        origin_connection_pool
+      end
     end
   end
 end
