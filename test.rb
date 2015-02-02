@@ -3,11 +3,13 @@
 
 class Logging
   def self.log(s)
-    puts s unless ENV['NO_LOG']
+    puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
   end
 end
 
 def time(label = nil)
+  raise 'Need block as timing target' unless block_given?
+
   t = Time.now
   res = yield
   Logging.log "~~~ Time - #{Time.now - t} label{#{label}} ~~~"
