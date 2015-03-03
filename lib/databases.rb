@@ -62,3 +62,14 @@ class ProductionDatabase < ActiveRecord::Base
   self.abstract_class = true
   establish_connection :production
 end
+
+module ActiveRecord
+  module ConnectionAdapters
+    class AbstractMysqlAdapter < AbstractAdapter
+      def execute(sql, name = nil)
+        ::Logging.log ">> Executing - sql{#{sql}}, name{#{name}}"
+        @connection.query sql
+      end
+    end
+  end
+end

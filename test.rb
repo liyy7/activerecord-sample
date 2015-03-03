@@ -1,45 +1,17 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-class Logging
-  def self.log(s)
-    puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
-  end
-end
-
-def time(label = nil)
-  raise 'Need block as timing target' unless block_given?
-
-  t = Time.now
-  res = yield
-  Logging.log "~~~ Time - #{Time.now - t} label{#{label}} ~~~"
-  res
-end
+lib_path = File.expand_path '../lib', __FILE__
+$LOAD_PATH.unshift lib_path unless $LOAD_PATH.include? lib_path
 
 $ACTIVE_DEBUG = false
 
-require './lib/databases'
-
-module ActiveRecord
-  module ConnectionAdapters
-    class AbstractMysqlAdapter
-      def execute(sql, name = nil)
-        ::Logging.log ">> Executing - sql{#{sql}}, name{#{name}}"
-        @connection.query sql
-      end
-    end
-  end
-end
+require 'helper'
+require 'databases'
 
 Database = StagingDatabase
 
-Database.connection.tables.each do|t_name|
-  klass_name = t_name.camelize
-  klass = Class.new Database do
-    self.table_name = t_name
-  end
-  Object.const_set klass_name, klass
-end
+define_tables Database
 
 class Location
   def filtered_attrs
