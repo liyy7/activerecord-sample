@@ -22,3 +22,22 @@ def define_tables(database)
     Object.const_set klass_name, klass
   end
 end
+
+def try_checkout_conn_from(db)
+  Thread.new do
+    loop do
+      begin
+        db.connection_pool.with_connection { |c| c } && break
+      rescue ActiveRecord::ConnectionTimeoutError => err
+        Logging.log err.inspect
+      end
+    end
+  end.join
+end
+
+def find_in_batches(table, batch_size = 5000)
+  (0 .. table.count).each_slice(batch_size) do |slice|
+    records = table.limit(batch_size).offset(slice.first).all
+    yield records
+  end
+end

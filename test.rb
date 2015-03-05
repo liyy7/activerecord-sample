@@ -34,18 +34,6 @@ def create_loc_dups(locs)
   end
 end
 
-def try_checkout_conn_from(db)
-  Thread.new do
-    loop do
-      begin
-        db.connection_pool.with_connection { |c| c } && break
-      rescue ActiveRecord::ConnectionTimeoutError => err
-        Logging.log err.inspect
-      end
-    end
-  end.join
-end
-
 def main
   threads = []
 

@@ -67,7 +67,7 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       def execute(sql, name = nil)
-        ::Logging.log ">> Executing - sql{#{sql}}, name{#{name}}"
+        ::Logging.log ">> Executing - sql{#{sql[0, 200]}}, name{#{name}}"
         @connection.query sql
       end
     end
