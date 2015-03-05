@@ -60,8 +60,8 @@ class JobPosting
   end
 
   def update_bit_coloumns(attrs)
-    nonNilAttrs = attrs.reject { |k, v| v.nil? }
-    nonNilAttrs && update(nonNilAttrs.map { |k, v| [k, [v].pack('c*')] }.to_h)
+    validAttrs = attrs.select { |k, v| v.is_a? Integer }
+    validAttrs.empty? || update(validAttrs.map { |k, v| [k, [v].pack('c*')] }.to_h)
   end
 
   private
@@ -95,7 +95,7 @@ def main
   batch_size = 5000
 
   (0 .. JobPosting.count).each_slice(batch_size) do |slice|
-    job_postings = JobPosting.includes(:offer_types, :features).limit(batch_size).offset(slice.first).all
+    job_postings = JobPosting.includes(:offer_types, :features).limit(batch_size).offset(slice.first).select(:id, :offer_type_bit, :feature_bit).all
 
     batch_cnt += 1
     time("check available database connection batch_#{batch_cnt}") { try_checkout_conn_from JobPosting }
