@@ -51,20 +51,23 @@ class JobPosting
   has_many :offer_types, class_name: OfferType
   has_many :features, class_name: Feature
 
-  def offer_type_bit
-    empty_bit_coloumn?(:offer_type_bit) ? attributes['offer_type_bit'] : offer_types.map(&:bit).inject { |m, o| m | o }
+  def built_offer_type_bit
+    offer_types.map(&:bit).inject { |m, o| m | o }
   end
 
-  def feature_bit
-    empty_bit_coloumn?(:feature_bit) ? attributes['feature_bit'] : features.map(&:bit).inject { |m, o| m | o }
+  def built_feature_bit
+    features.map(&:bit).inject { |m, o| m | o }
   end
 
   def update_bit_coloumns(attrs)
-    validAttrs = attrs.select { |k, v| v.is_a? Integer }
-    validAttrs.empty? || update(validAttrs.map { |k, v| [k, [v].pack('c*')] }.to_h)
+    bit_attrs = attrs
+    .select { |k, v| v.is_a? Integer }
+    .map { |k, v| [k, [v].pack('c*')] }
+    .to_h
+
+    bit_attrs.empty? || update(bit_attrs)
   end
 
-  private
   def empty_bit_coloumn?(coloum)
     attributes[coloum.to_s].bytes.any? { |b| b > 0 }
   end
@@ -76,9 +79,9 @@ def update_job_postings(job_postings)
   JobPosting.connection_pool.with_connection do
     job_postings.each do|job_posting|
       begin
-        offer_type_bit = job_posting.offer_type_bit
-        feature_bit = job_posting.feature_bit
-        job_posting.update_bit_coloumns(offer_type_bit: offer_type_bit, feature_bit: feature_bit)
+        job_posting.update_bit_coloumns(
+          offer_type_bit: job_posting.built_offer_type_bit,
+          feature_bit: job_posting.built_feature_bit)
 
         Logging.log "#{@updated_cnt += 1} JobPostings updated"
       rescue StandardError => err
@@ -94,12 +97,20 @@ def main
   batch_cnt = 0
   batch_size = 1000
 
-  (0 .. JobPosting.where('offer_type_bit = 0 AND feature_bit = 0').count).each_slice(batch_size) do |slice|
-    job_postings = JobPosting.includes(:offer_types, :features)
-      .select(:id, :offer_type_bit, :feature_bit)
-      .where('offer_type_bit = 0 AND feature_bit = 0')
-      .limit(batch_size).offset(slice.first)
-      .all
+  (0 .. JobPosting.count).each_slice(batch_size) do |slice|
+    job_postings = JobPosting
+    .select(:id, :offer_type_bit, :feature_bit)
+    .limit(batch_size)
+    .offset(slice.first)
+    .all
+    .select { |j| j.empty_bit_coloumn?(:offer_type_bit) && j.empty_bit_coloumn?(:feature_bit) }
+
+    job_postings = JobPosting
+    .includes(:offer_types, :features)
+    .select(:id)
+    .where(id: job_postings.collect(&:id))
+    .all
+    .reject { |j| j.offer_types.empty? && j.features.empty? }
 
     batch_cnt += 1
     time("check available database connection batch_#{batch_cnt}") { try_checkout_conn_from JobPosting }
