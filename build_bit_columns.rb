@@ -69,7 +69,7 @@ class JobPosting
   end
 
   def empty_bit_coloumn?(coloum)
-    attributes[coloum.to_s].bytes.any? { |b| b > 0 }
+    !attributes[coloum.to_s].bytes.any? { |b| b > 0 }
   end
 end
 
@@ -77,13 +77,16 @@ def update_job_postings(job_postings)
   @updated_cnt = @updated_cnt ? @updated_cnt : 0
 
   JobPosting.connection_pool.with_connection do
-    JobPosting
+    job_postings = JobPosting
     .includes(:offer_types, :features)
     .select(:id)
     .where(id: job_postings.collect(&:id))
     .all
     .reject { |j| j.offer_types.empty? && j.features.empty? }
-    .each do|job_posting|
+
+    Logging.log "#{job_postings.size} JobPostings may be updated"
+
+    job_postings.each do|job_posting|
       begin
         job_posting.update_bit_coloumns(
           offer_type_bit: job_posting.built_offer_type_bit,
