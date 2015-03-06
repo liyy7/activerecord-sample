@@ -74,6 +74,8 @@ class JobPosting
 end
 
 def update_job_postings(job_postings)
+  return if job_postings.empty?
+
   @updated_cnt = @updated_cnt ? @updated_cnt : 0
 
   JobPosting.connection_pool.with_connection do
@@ -113,8 +115,6 @@ def main
     .offset(slice.first)
     .all
     .select { |j| j.empty_bit_coloumn?(:offer_type_bit) && j.empty_bit_coloumn?(:feature_bit) }
-
-    next if job_postings.empty?
 
     batch_cnt += 1
     time("check available database connection batch_#{batch_cnt}") { try_checkout_conn_from JobPosting }
