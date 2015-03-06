@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 class Logging
   def self.log(s)
     puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
@@ -21,6 +23,8 @@ def define_tables(database)
     end
     Object.const_set klass_name, klass
   end
+
+  yield if block_given?
 end
 
 def try_checkout_conn_from(db)
@@ -35,9 +39,14 @@ def try_checkout_conn_from(db)
   end.join
 end
 
-def find_in_batches(table, batch_size = 5000)
+def find_in_batches(table, options = {}, batch_size = 5000)
+  fail 'block required' unless block_given?
+
   (0 .. table.count).each_slice(batch_size) do |slice|
-    records = table.limit(batch_size).offset(slice.first).all
+    query = table
+    query = options[:order_by].nil? ? query : query.order(options[:order_by])
+    query = query.limit(batch_size).offset(slice.first)
+    records = query.all
     yield records
   end
 end
