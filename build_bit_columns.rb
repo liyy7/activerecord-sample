@@ -92,10 +92,14 @@ def main
   threads = []
 
   batch_cnt = 0
-  batch_size = 5000
+  batch_size = 1000
 
-  (0 .. JobPosting.count).each_slice(batch_size) do |slice|
-    job_postings = JobPosting.includes(:offer_types, :features).limit(batch_size).offset(slice.first).select(:id, :offer_type_bit, :feature_bit).all
+  (0 .. JobPosting.where('offer_type_bit = 0 AND feature_bit = 0').count).each_slice(batch_size) do |slice|
+    job_postings = JobPosting.includes(:offer_types, :features)
+      .select(:id, :offer_type_bit, :feature_bit)
+      .where('offer_type_bit = 0 AND feature_bit = 0')
+      .limit(batch_size).offset(slice.first)
+      .all
 
     batch_cnt += 1
     time("check available database connection batch_#{batch_cnt}") { try_checkout_conn_from JobPosting }
