@@ -77,7 +77,13 @@ def update_job_postings(job_postings)
   @updated_cnt = @updated_cnt ? @updated_cnt : 0
 
   JobPosting.connection_pool.with_connection do
-    job_postings.each do|job_posting|
+    JobPosting
+    .includes(:offer_types, :features)
+    .select(:id)
+    .where(id: job_postings.collect(&:id))
+    .all
+    .reject { |j| j.offer_types.empty? && j.features.empty? }
+    .each do|job_posting|
       begin
         job_posting.update_bit_coloumns(
           offer_type_bit: job_posting.built_offer_type_bit,
@@ -104,13 +110,6 @@ def main
     .offset(slice.first)
     .all
     .select { |j| j.empty_bit_coloumn?(:offer_type_bit) && j.empty_bit_coloumn?(:feature_bit) }
-
-    job_postings = JobPosting
-    .includes(:offer_types, :features)
-    .select(:id)
-    .where(id: job_postings.collect(&:id))
-    .all
-    .reject { |j| j.offer_types.empty? && j.features.empty? }
 
     batch_cnt += 1
     time("check available database connection batch_#{batch_cnt}") { try_checkout_conn_from JobPosting }
