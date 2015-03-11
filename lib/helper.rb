@@ -2,12 +2,13 @@
 
 class Logging
   def self.log(s)
-    puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
+    STDOUT.puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
+    STDOUT.flush
   end
 end
 
 def time(label = nil)
-  fail 'Need block as timing target' unless block_given?
+  fail 'Block required' unless block_given?
 
   t = Time.now
   res = yield
@@ -40,7 +41,7 @@ def try_checkout_conn_from(db)
 end
 
 def find_in_batches(table, options = {}, batch_size = 5000)
-  fail 'block required' unless block_given?
+  fail 'Block required' unless block_given?
 
   (0 .. table.count).each_slice(batch_size) do |slice|
     query = table
