@@ -8,6 +8,4 @@ $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
 require 'helper'
 require 'databases'
 
-Database = ProductionDatabase
-
-define_tables(Database) { require 'table_definitions' }
+define_tables(JobPostingDatabase, OAuthDatabase) { require 'table_definitions' }

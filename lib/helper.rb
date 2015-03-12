@@ -16,23 +16,22 @@ def time(label = nil)
   res
 end
 
-def define_tables(database)
-  database.connection.tables.each do|t_name|
-    klass_name = t_name.camelize
-    klass = Class.new database do
-      self.table_name = t_name
+def define_tables(*databases)
+  databases.each do |db|
+    db.connection.tables.each do|table|
+      klass = Class.new(db) { self.table_name = table }
+      Object.const_set table.camelize, klass
     end
-    Object.const_set klass_name, klass
   end
 
   yield if block_given?
 end
 
-def try_checkout_conn_from(db)
+def wait_for_available_connection(database)
   Thread.new do
     loop do
       begin
-        db.connection_pool.with_connection { |c| c } && break
+        database.connection_pool.with_connection { |c| c } && break
       rescue ActiveRecord::ConnectionTimeoutError => err
         Logging.log err.inspect
       end

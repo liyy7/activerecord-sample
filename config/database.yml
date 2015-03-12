@@ -3,25 +3,21 @@ default: &default
   pool:    5
   timeout: 5000
 
-development: &development
-  <<: *default
-  host:     '127.0.0.1'
-  username: 'root'
-  password: ''
-  database: '__DATABASE__'
-
-staging: &staging
-  <<: *default
+local: &local
   host:     '127.0.0.1'
   username: 'root'
   password: 'password'
-  database: '__DATABASE__'
 
-production: &production
+job_posting:
   <<: *default
-  host:     '127.0.0.1'
-  username: 'root'
-  password: 'password'
-  database: '__DATABASE__'
+  <<: *local
+  database: '__JOB_POSTING__'
 
-default_env: *development
+oauth:
+  <<: *default
+  <<: *local
+  database: 'oauth2.0'
+
+default_env:
+  <<: *default
+  <<: *local

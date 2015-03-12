@@ -4,63 +4,20 @@ require 'bundler/setup'
 require 'active_record'
 require 'yaml'
 
-ActiveRecord::Base.logger = Logger.new(STDOUT) if $ACTIVE_DEBUG
+ActiveRecord::Base.configurations =
+  YAML.load_file(File.expand_path('../../config/database.yml', __FILE__))
 
-db_config = YAML.load_file File.expand_path('../../config/database.yml', __FILE__)
+# Use :default_env
+ActiveRecord::Base.establish_connection
 
-ActiveRecord::Base.configurations = db_config
-
-module ActiveRecord
-  class Base
-    class << self
-      attr_reader :established
-      alias_method :established?, :established
-
-      def custom_establish_connection
-        if defined?(Database)
-          establish_connection Database.connection_config
-        else
-          establish_connection
-        end
-
-        @established = true
-      end
-
-      def establish_connection_if_neccessary
-        custom_establish_connection if self == ActiveRecord::Base && !established?
-      end
-
-      private :custom_establish_connection, :establish_connection_if_neccessary
-
-      alias_method :origin_connection, :connection
-      alias_method :origin_connection_pool, :connection_pool
-
-      def connection
-        establish_connection_if_neccessary
-        origin_connection
-      end
-
-      def connection_pool
-        establish_connection_if_neccessary
-        origin_connection_pool
-      end
-    end
-  end
+class JobPostingDatabase < ActiveRecord::Base
+  self.abstract_class = true
+  establish_connection :job_posting
 end
 
-class DevelopmentDatabase < ActiveRecord::Base
+class OAuthDatabase < ActiveRecord::Base
   self.abstract_class = true
-  establish_connection :development
-end
-
-class StagingDatabase < ActiveRecord::Base
-  self.abstract_class = true
-  establish_connection :staging
-end
-
-class ProductionDatabase < ActiveRecord::Base
-  self.abstract_class = true
-  establish_connection :production
+  establish_connection :oauth
 end
 
 module ActiveRecord
