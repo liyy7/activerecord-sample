@@ -42,7 +42,7 @@ end
 def find_in_batches(table, options = {}, batch_size = 5000)
   fail 'Block required' unless block_given?
 
-  (0 .. table.count).each_slice(batch_size) do |slice|
+  (0..table.count).each_slice(batch_size) do |slice|
     query = table
     query = options[:order_by].nil? ? query : query.order(options[:order_by])
     query = query.limit(batch_size).offset(slice.first)
