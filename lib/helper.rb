@@ -50,3 +50,15 @@ def find_in_batches(table, options = {}, batch_size = 5000)
     yield records
   end
 end
+
+class String
+  require 'anbt-sql-formatter/formatter'
+  def pretty_formatted_sql
+    @sql_formatter ||= begin
+                         rule = AnbtSql::Rule.new
+                         rule.indent_string = '  '
+                         AnbtSql::Formatter.new rule
+                       end
+    @sql_formatter.format self.clone
+  end
+end

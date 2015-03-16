@@ -1,6 +1,5 @@
 # encoding: UTF-8
 
-require 'bundler/setup'
 require 'active_record'
 require 'yaml'
 
@@ -24,7 +23,7 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       def execute(sql, name = nil)
-        ::Logging.log ">> Executing - sql{#{sql[0, 200]}}, name{#{name}}"
+        ::Logging.log ">> Executing - sql{\n#{sql.pretty_formatted_sql.yellow}\n}, name{#{name}}"
         @connection.query sql
       end
     end

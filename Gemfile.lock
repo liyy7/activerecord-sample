@@ -14,8 +14,15 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
+    anbt-sql-formatter (0.0.3)
     arel (6.0.0)
+    awesome_print (1.6.1)
     builder (3.2.2)
+    http (0.7.2)
+      http-form_data (~> 1.0.0)
+      http_parser.rb (~> 0.6.0)
+    http-form_data (1.0.0)
+    http_parser.rb (0.6.0)
     i18n (0.7.0)
     json (1.8.2)
     minitest (5.5.1)
@@ -29,4 +36,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord
+  anbt-sql-formatter
+  awesome_print
+  http
   mysql2
