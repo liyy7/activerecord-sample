@@ -23,8 +23,8 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       def execute(sql, name = nil)
-        ::Logging.log ">> Executing - sql{\n#{sql.pretty_formatted_sql.yellow}\n}, name{#{name}}"
-        @connection.query sql
+        respond_to?(:get_logger) && get_logger.debug('SQL') { sql }
+        respond_to?(:time) ? time('QUERY') { @connection.query sql } : @connection.query(sql)
       end
     end
   end

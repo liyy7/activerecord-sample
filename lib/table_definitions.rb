@@ -1,4 +1,5 @@
 # encoding: UTF-8
+
 class JobPosting
   module TitledAttribute
     def self.included(klass)
@@ -45,6 +46,10 @@ class JobPosting
 
   has_many :locations
   has_many :nearest_stations
+
+  scope :full_model, -> do
+    eager_load({locations: [:country, :administrative_area, :locality_group, :locality, :ward]}, {nearest_stations: [:station]})
+  end
 
   def offer_types
     OfferType.from_bits(offer_type_bit).map do |o|
@@ -124,7 +129,7 @@ class Location
   belongs_to :administrative_area
   belongs_to :locality_group
   belongs_to :locality
-  belongs_to :ward
+  belongs_to :ward, -> { where.not(id:  0) }
 end
 
 class Station

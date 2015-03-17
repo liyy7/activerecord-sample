@@ -11,4 +11,8 @@ require 'awesome_print'
 require 'helper'
 require 'databases'
 
+include Helper
+
+ActiveRecord::Base.logger = get_logger
+
 define_tables(JobPostingDatabase, OAuthDatabase) { require 'table_definitions' }
