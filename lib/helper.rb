@@ -6,7 +6,7 @@ require_relative 'string_patch'
 
 module Helper
   def get_logger
-    @logger ||= begin
+    $logger ||= begin
                   target = interpreter? ? STDOUT : "logs/#{Time.now.to_s.gsub(/[- :+]/, '')}.log"
                   Logger.new(target).tap do |logger|
                     logger.formatter = proc do |severity, time, progname, msg|
