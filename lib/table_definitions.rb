@@ -1,5 +1,24 @@
 # encoding: UTF-8
 
+# Add :unsigned_id as a valid association option
+module ActiveRecord::Associations::Builder
+  class Association
+    self.valid_options << :unsigned_id
+  end
+end
+
+module BelongsToReflectionPatch
+  def self.included(klass)
+    klass.reflect_on_all_associations(:belongs_to).each do |reflection|
+      klass.class_eval do
+        define_method(reflection.name) do
+          instance_eval("#{reflection.name}_id") > 0 ? super : nil
+        end
+      end if reflection.options[:unsigned_id]
+    end
+  end
+end
+
 class JobPosting
   module TitledAttribute
     def self.included(klass)
@@ -125,11 +144,13 @@ end
 
 class Location
   belongs_to :job_posting
-  belongs_to :country
-  belongs_to :administrative_area
-  belongs_to :locality_group
-  belongs_to :locality
-  belongs_to :ward, -> { where.not(id:  0) }
+  belongs_to :country, { unsigned_id: true }
+  belongs_to :administrative_area, { unsigned_id: true }
+  belongs_to :locality_group, { unsigned_id: true }
+  belongs_to :locality, { unsigned_id: true }
+  belongs_to :ward, { unsigned_id: true }
+
+  include BelongsToReflectionPatch
 end
 
 class Station
