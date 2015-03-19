@@ -1,5 +1,8 @@
 # encoding: UTF-8
 
+require_relative 'job_posting/offer_type'
+require_relative 'job_posting/feature'
+
 class JobPosting
   has_many :locations
   has_many :nearest_stations
@@ -10,12 +13,22 @@ class JobPosting
       { nearest_stations: :station })
   end
 
-  scope :find_by_station_titles, ->(titles) do
+  scope :find_by_offer_types, ->(*values) do
+    bits = OfferType.to_bits(values)
+    bits > 0 ? where('offer_type_bit & ?', bits) : all
+  end
+
+  scope :find_by_locality_ids, ->(*ids) do
+    joins(locations: :locality).where(locality: { id: ids })
+  end
+
+  scope :find_by_station_titles, ->(*titles) do
     joins(nearest_stations: :station).where(station: { title: titles })
   end
 
-  scope :find_by_locality_ids, ->(ids) do
-    joins(locations: :locality).where(locality: { id: ids })
+  scope :find_by_features, ->(*values) do
+    bits = Feature.to_bits(values)
+    bits > 0 ? where('feature_bit & ?', bits) : all
   end
 
   def offer_types
@@ -32,4 +45,3 @@ class JobPosting
     end
   end
 end
-

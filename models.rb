@@ -12,5 +12,15 @@ require 'databases'
   end
 end
 
-# require all models
+# Require all models
 require_relative 'models/job_posting'
+require_relative 'models/location'
+require_relative 'models/country'
+require_relative 'models/administrative_area'
+require_relative 'models/locality_group'
+require_relative 'models/locality'
+require_relative 'models/ward'
+require_relative 'models/nearest_station'
+require_relative 'models/station'
+require_relative 'models/like'
+require_relative 'models/user'

@@ -10,7 +10,7 @@ ActiveRecord::Base.configurations =
 ActiveRecord::Base.establish_connection
 
 # This patch need to be required after establish_connection
-require_relative 'databases/abstract_mysql_adapter_patch'
+require_relative 'patchs/abstract_mysql_adapter'
 
 class JobPostingDatabase < ActiveRecord::Base
   self.abstract_class = true
