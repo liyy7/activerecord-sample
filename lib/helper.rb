@@ -5,6 +5,8 @@ require 'awesome_print'
 require_relative 'string_patch'
 
 module Helper
+  module_function
+
   def get_logger
     $logger ||= begin
                   target = interpreter? ? STDOUT : "logs/#{Time.now.to_s.gsub(/[- :+]/, '')}.log"
@@ -33,31 +35,10 @@ module Helper
     r
   end
 
-  private
-
   def interpreter?
     defined?(IRB) || defined?(Pry)
   end
 end
-
-  ###
-  class Logging
-    def self.log(s)
-      STDOUT.puts "#{Time.now} >> #{s}" unless ENV['NO_LOG']
-      STDOUT.flush
-    end
-  end
-
-  def define_tables(*databases)
-    databases.each do |db|
-      db.connection.tables.each do|table|
-        klass = Class.new(db) { self.table_name = table }
-        Object.const_set table.camelize, klass
-      end
-    end
-
-    yield if block_given?
-  end
 
   def wait_for_available_connection(database)
     Thread.new do

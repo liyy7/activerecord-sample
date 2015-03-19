@@ -9,6 +9,9 @@ ActiveRecord::Base.configurations =
 # Use :default_env
 ActiveRecord::Base.establish_connection
 
+# This patch need to be required after establish_connection
+require_relative 'databases/abstract_mysql_adapter_patch'
+
 class JobPostingDatabase < ActiveRecord::Base
   self.abstract_class = true
   establish_connection :job_posting
@@ -17,15 +20,4 @@ end
 class OAuthDatabase < ActiveRecord::Base
   self.abstract_class = true
   establish_connection :oauth
-end
-
-module ActiveRecord
-  module ConnectionAdapters
-    class AbstractMysqlAdapter < AbstractAdapter
-      def execute(sql, name = nil)
-        respond_to?(:get_logger) && get_logger.debug('SQL') { sql }
-        respond_to?(:time) ? time('QUERY') { @connection.query sql } : @connection.query(sql)
-      end
-    end
-  end
 end
