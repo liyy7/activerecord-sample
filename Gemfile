@@ -5,3 +5,5 @@ gem 'mysql2'
 gem 'http'
 gem 'anbt-sql-formatter'
 gem 'awesome_print'
+
+gem 'pry'
